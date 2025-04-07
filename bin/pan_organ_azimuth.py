@@ -10,8 +10,8 @@ import muon as mu
 def main(
         secondary_analysis_matrix: Path,
 ):
-    if secondary_analysis_matrix.suffix == "h5mu":
-        mudata = mu.read(secondary_analysis_matrix)
+    if secondary_analysis_matrix.suffix == ".h5mu":
+        mudata = mu.read_h5mu(secondary_analysis_matrix)
         adata = mudata.mod["rna"]
     else:
         adata = anndata.read_h5ad(secondary_analysis_matrix)
@@ -24,17 +24,17 @@ def main(
     secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
                                                obsm = ct_adata.obsm, uns=ct_adata.uns)
 
-    if secondary_analysis_matrix.suffix == "h5mu":
+    if secondary_analysis_matrix.suffix == ".h5mu":
         mudata.mod["rna"] = secondary_analysis_adata
-        mudata.write("secondary_analysis.h5mu")
+        mudata.write_h5mu("secondary_analysis.h5mu")
     else:
         secondary_analysis_adata.write("secondary_analysis.h5ad")
 
 if __name__ == '__main__':
     p = ArgumentParser()
-    p.add_argument('secondary_matrix_path', type=Path)
+    p.add_argument('secondary_analysis_matrix', type=Path)
     args = p.parse_args()
 
     main(
-        args.h5ad_file,
+        args.secondary_analysis_matrix,
     )
