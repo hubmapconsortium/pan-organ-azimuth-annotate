@@ -34,5 +34,5 @@ steps:
     in:
       secondary_analysis_matrix: secondary_analysis_matrix
     out:
-      [annotated_secondary_analysis_matrix, umap_plot, spatial_plot, marker_gene_plot]
+      [annotated_secondary_analysis_matrix, umap_plot, spatial_plot, marker_gene_plot, neighborhood_enrichment_plot]
 
