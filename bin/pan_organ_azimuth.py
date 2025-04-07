@@ -23,7 +23,8 @@ def main(
     ct_adata = anndata.read_h5ad('secondary_analysis_hugo_ANN.h5ad')
     secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
                                                obsm = ct_adata.obsm, uns=ct_adata.uns)
-
+    for key in adata.obsm:
+        secondary_analysis_adata.obsm[key] = adata.obsm[key]
 
     sc.pl.umap(secondary_analysis_adata, color="azimuth_fine", show=False, save="umap_by_cell_type.pdf")
 
