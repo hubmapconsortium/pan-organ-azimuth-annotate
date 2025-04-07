@@ -5,11 +5,17 @@ from subprocess import run, check_call
 from typing import Optional
 import anndata
 import scanpy
+import muon as mu
 
 def main(
-        h5ad_file: Path,
+        secondary_analysis_matrix: Path,
 ):
-    adata = anndata.read_h5ad(h5ad_file)
+    if secondary_analysis_matrix.suffix == "h5mu":
+        mudata = mu.read(secondary_analysis_matrix)
+        adata = mudata.mod["rna"]
+    else:
+        adata = anndata.read_h5ad(secondary_analysis_matrix)
+
     adata = adata[:,~adata.var.hugo_symbol.isna()]
     adata.write('secondary_analysis_hugo.h5ad')
     azimuth_annotate_command = f"annotate secondary_analysis_hugo.h5ad -fn hugo_symbol"
@@ -17,11 +23,16 @@ def main(
     ct_adata = anndata.read_h5ad('secondary_analysis_hugo_ANN.h5ad')
     secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
                                                obsm = ct_adata.obsm, uns=ct_adata.uns)
-    secondary_analysis_adata.write("secondary_analysis.h5ad")
+
+    if secondary_analysis_matrix.suffix == "h5mu":
+        mudata.mod["rna"] = secondary_analysis_adata
+        mudata.write("secondary_analysis.h5mu")
+    else:
+        secondary_analysis_adata.write("secondary_analysis.h5ad")
 
 if __name__ == '__main__':
     p = ArgumentParser()
-    p.add_argument('h5ad_file', type=Path)
+    p.add_argument('secondary_matrix_path', type=Path)
     args = p.parse_args()
 
     main(

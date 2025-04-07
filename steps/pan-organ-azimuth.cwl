@@ -6,15 +6,15 @@ requirements:
     dockerPull: hubmap/pan-organ-azimuth:latest
 
 inputs:
-  h5ad_file:
+  secondary_analysis_matrix:
     type: File
     inputBinding:
       position: 0
 
 outputs:
-  annotated_h5ad_file:
+  annotated_secondary_analysis_matrix:
     type: File
     outputBinding:
-      glob: 'secondary_analysis.h5ad'
+      glob: 'secondary_analysis.*'
 
 baseCommand: ['python3', '/opt/pan_organ_azimuth.py']

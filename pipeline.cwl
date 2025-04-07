@@ -5,19 +5,19 @@ requirements:
   ScatterFeatureRequirement: {}
 
 inputs:
-  h5ad_file:
+  secondary_analysis_matrix:
     type: File
 
 outputs:
-  annotated_h5ad_file:
+  annotated_secondary_analysis_matrix:
     type: File
-    outputSource: pan_organ_azimuth/annotated_h5ad_file
+    outputSource: pan_organ_azimuth/annotated_secondary_analysis_matrix
 
 steps:
   pan_organ_azimuth:
     run: steps/pan-organ-azimuth.cwl
     in:
-      h5ad_file: h5ad_file
+      secondary_analysis_matrix: secondary_analysis_matrix
     out:
-      [annotated_h5ad_file]
+      [annotated_secondary_analysis_matrix]
 
