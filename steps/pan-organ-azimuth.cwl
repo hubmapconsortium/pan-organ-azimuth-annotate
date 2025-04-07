@@ -17,4 +17,4 @@ outputs:
     outputBinding:
       glob: 'secondary_analysis.h5ad'
 
-baseCommand: ['python3', '/opt/pan-organ-azimuth.py']
+baseCommand: ['python3', '/opt/pan_organ_azimuth.py']

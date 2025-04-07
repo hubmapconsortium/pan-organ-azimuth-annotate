@@ -9,10 +9,15 @@ import scanpy
 def main(
         h5ad_file: Path,
 ):
-    azimuth_annotate_command = f"annotate {h5ad_file}"
+    adata = anndata.read_h5ad(h5ad_file)
+    adata = adata[:,~adata.var.hugo_symbol.isna()]
+    adata.write('secondary_analysis_hugo.h5ad')
+    azimuth_annotate_command = f"annotate secondary_analysis_hugo.h5ad -fn hugo_symbol"
     check_call(azimuth_annotate_command, shell=True)
-    mv_command = f"mv secondary_analysis_ANN.h5ad secondary_analysis.h5ad"
-    check_call(mv_command, shell=True)
+    ct_adata = anndata.read_h5ad('secondary_analysis_hugo_ANN.h5ad')
+    secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
+                                               obsm = ct_adata.obsm, uns=ct_adata.uns)
+    secondary_analysis_adata.write("secondary_analysis.h5ad")
 
 if __name__ == '__main__':
     p = ArgumentParser()

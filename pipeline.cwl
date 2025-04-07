@@ -15,7 +15,7 @@ outputs:
 
 steps:
   pan_organ_azimuth:
-    run: pan-organ-azimuth.cwl
+    run: steps/pan-organ-azimuth.cwl
     in:
       h5ad_file: h5ad_file
     out:
