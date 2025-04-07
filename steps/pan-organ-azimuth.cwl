@@ -28,5 +28,9 @@ outputs:
     type: File
     outputBinding:
       glob: marker_genes_by_cell_type_t_test.pdf
+  neighborhood_enrichment_plot:
+    type: File?
+    outputBinding:
+      glob: neighborhood_enrichment_by_cell_type.pdf
 
 baseCommand: ['python3', '/opt/pan_organ_azimuth.py']

@@ -5,6 +5,7 @@ from subprocess import run, check_call
 from typing import Optional
 import anndata
 import scanpy as sc
+import squidpy as sq
 import muon as mu
 from plot_utils import new_plot
 import matplotlib.pyplot as plt
@@ -36,6 +37,15 @@ def main(
         with new_plot():
             sc.pl.scatter(secondary_analysis_adata, color="azimuth_fine", basis="spatial", show=False)
             plt.savefig("spatial_pos_by_cell_type.pdf", bbox_inches="tight")
+
+        sq.gr.spatial_neighbors(secondary_analysis_adata)
+        secondary_analysis_adata_subset = secondary_analysis_adata[~secondary_analysis_adata.obs.azimuth_fine.isna()]
+
+        sq.gr.nhood_enrichment(secondary_analysis_adata_subset, cluster_key="azimuth_fine")
+
+        with new_plot():
+            sq.pl.nhood_enrichment(secondary_analysis_adata_subset, cluster_key="azimuth_fine")
+            plt.savefig("neighborhood_enrichment_by_cell_type.pdf", bbox_inches="tight")
 
     single_sample_cells = [c for c in secondary_analysis_adata.obs.azimuth_fine.unique() if
                            len(secondary_analysis_adata[secondary_analysis_adata.obs.azimuth_fine == c].obs.index) == 1]

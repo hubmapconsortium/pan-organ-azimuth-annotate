@@ -24,6 +24,9 @@ outputs:
     outputSource: pan_organ_azimuth/marker_gene_plot
     type: File
     label: "Cell type marker genes, t-test"
+  neighborhood_enrichment_plot:
+    outputSource: pan_organ_azimuth/neighborhood_enrichment_plot
+    type: File?
 
 steps:
   pan_organ_azimuth:
