@@ -14,7 +14,7 @@ outputs:
     outputSource: pan_organ_azimuth/annotated_secondary_analysis_matrix
   umap_plot:
     outputSource: pan_organ_azimuth/umap_plot
-    type: File
+    type: File?
     label: "UMAP dimensionality reduction plot colored by cell type"
   spatial_plot:
     outputSource: pan_organ_azimuth/spatial_plot
@@ -22,7 +22,7 @@ outputs:
     label: "Spatial plot colored by cell type"
   marker_gene_plot_t_test:
     outputSource: pan_organ_azimuth/marker_gene_plot
-    type: File
+    type: File?
     label: "Cell type marker genes, t-test"
   neighborhood_enrichment_plot:
     outputSource: pan_organ_azimuth/neighborhood_enrichment_plot

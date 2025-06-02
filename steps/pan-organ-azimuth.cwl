@@ -17,7 +17,7 @@ outputs:
     outputBinding:
       glob: 'secondary_analysis.*'
   umap_plot:
-    type: File
+    type: File?
     outputBinding:
       glob: umap_by_cell_type.pdf
   spatial_plot:
@@ -25,7 +25,7 @@ outputs:
     outputBinding:
       glob: spatial_pos_by_cell_type.pdf
   marker_gene_plot:
-    type: File
+    type: File?
     outputBinding:
       glob: marker_genes_by_cell_type_t_test.pdf
   neighborhood_enrichment_plot:
