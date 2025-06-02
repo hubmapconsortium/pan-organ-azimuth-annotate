@@ -26,9 +26,6 @@ COPY docker/requirements.txt /opt/requirements.txt
 RUN pip3 install -r /opt/requirements.txt \
  && rm -rf /root/.cache/pip
 
-COPY panhumanpy /opt/panhumanpy
-RUN pip3 install /opt/panhumanpy
-
 COPY bin/ /opt
 
 WORKDIR /opt
