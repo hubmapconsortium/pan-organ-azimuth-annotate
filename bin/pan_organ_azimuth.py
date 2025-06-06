@@ -77,7 +77,7 @@ def main(
         secondary_analysis_adata.write("secondary_analysis.h5ad")
 
     calculated_metadata_dict = {"annotation_tools": ["Azimuth"], "object_types": ["CL:0000000"]}
-    with open('annotated_metadata.json', 'w') as f:
+    with open('calculated_metadata.json', 'w') as f:
         json.dump(calculated_metadata_dict, f)
 
 if __name__ == '__main__':
