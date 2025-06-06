@@ -27,6 +27,9 @@ outputs:
   neighborhood_enrichment_plot:
     outputSource: pan_organ_azimuth/neighborhood_enrichment_plot
     type: File?
+  calculated_metadata_file:
+    outputSource: pan_organ_azimuth/calculated_metadata_file
+    type: File
 
 steps:
   pan_organ_azimuth:
@@ -34,5 +37,6 @@ steps:
     in:
       secondary_analysis_matrix: secondary_analysis_matrix
     out:
-      [annotated_secondary_analysis_matrix, umap_plot, spatial_plot, marker_gene_plot, neighborhood_enrichment_plot]
+      [annotated_secondary_analysis_matrix, umap_plot, spatial_plot, marker_gene_plot, neighborhood_enrichment_plot,
+      calculated_metadata_file]
 

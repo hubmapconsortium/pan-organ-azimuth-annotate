@@ -3,7 +3,7 @@ cwlVersion: v1.1
 class: CommandLineTool
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/pan-organ-azimuth:0.1
+    dockerPull: hubmap/pan-organ-azimuth:latest
 
 inputs:
   secondary_analysis_matrix:
@@ -32,5 +32,9 @@ outputs:
     type: File?
     outputBinding:
       glob: neighborhood_enrichment_by_cell_type.pdf
+  calculated_metadata_file:
+    type: File
+    outputBinding:
+      glob: calculated_metadata.json
 
 baseCommand: ['python3', '/opt/pan_organ_azimuth.py']

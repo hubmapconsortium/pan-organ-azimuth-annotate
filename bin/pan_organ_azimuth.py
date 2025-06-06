@@ -9,6 +9,7 @@ import squidpy as sq
 import muon as mu
 from plot_utils import new_plot
 import matplotlib.pyplot as plt
+import json
 
 def main(
         secondary_analysis_matrix: Path,
@@ -74,6 +75,10 @@ def main(
         mudata.write_h5mu("secondary_analysis.h5mu")
     else:
         secondary_analysis_adata.write("secondary_analysis.h5ad")
+
+    calculated_metadata_dict = {"annotation_tools": ["Azimuth"], "object_types": ["CL:0000000"]}
+    with open('calculated_metadata.json', 'w') as f:
+        json.dump(calculated_metadata_dict, f)
 
 if __name__ == '__main__':
     p = ArgumentParser()
