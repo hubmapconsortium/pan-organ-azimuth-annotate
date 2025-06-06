@@ -32,5 +32,9 @@ outputs:
     type: File?
     outputBinding:
       glob: neighborhood_enrichment_by_cell_type.pdf
+  calculated_metadata_file:
+    type: File
+    outputBinding:
+      glob: calculated_metadata.json
 
 baseCommand: ['python3', '/opt/pan_organ_azimuth.py']
