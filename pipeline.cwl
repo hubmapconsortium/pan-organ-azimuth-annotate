@@ -7,6 +7,9 @@ requirements:
 inputs:
   secondary_analysis_matrix:
     type: File
+  organism:
+    type: string?
+    default: "human"
 
 outputs:
   annotated_secondary_analysis_matrix:
@@ -29,7 +32,7 @@ outputs:
     type: File?
   calculated_metadata_file:
     outputSource: pan_organ_azimuth/calculated_metadata_file
-    type: File
+    type: File?
 
 steps:
   pan_organ_azimuth:
