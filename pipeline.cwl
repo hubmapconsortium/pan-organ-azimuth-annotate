@@ -39,6 +39,7 @@ steps:
     run: steps/pan-organ-azimuth.cwl
     in:
       secondary_analysis_matrix: secondary_analysis_matrix
+      organism: organism
     out:
       [annotated_secondary_analysis_matrix, umap_plot, spatial_plot, marker_gene_plot, neighborhood_enrichment_plot,
       calculated_metadata_file]
