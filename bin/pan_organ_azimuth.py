@@ -13,79 +13,90 @@ import json
 
 def main(
         secondary_analysis_matrix: Path,
+        organism: str,
 ):
-    if secondary_analysis_matrix.suffix == ".h5mu":
-        mudata = mu.read_h5mu(secondary_analysis_matrix)
-        adata = mudata.mod["rna"]
-    else:
-        adata = anndata.read_h5ad(secondary_analysis_matrix)
+    if organism == "human":
+        if secondary_analysis_matrix.suffix == ".h5mu":
+            mudata = mu.read_h5mu(secondary_analysis_matrix)
+            adata = mudata.mod["rna"]
+        else:
+            adata = anndata.read_h5ad(secondary_analysis_matrix)
 
-    if "unscaled" in adata.layers:
-        adata.X = adata.layers["unscaled"]
+        if "unscaled" in adata.layers:
+            adata.X = adata.layers["unscaled"]
 
-    adata = adata[:,~adata.var.hugo_symbol.isna()]
+        adata = adata[:,~adata.var.hugo_symbol.isna()]
 
-    adata.write('secondary_analysis_hugo.h5ad')
-    azimuth_annotate_command = f"annotate secondary_analysis_hugo.h5ad -fn hugo_symbol"
-    check_call(azimuth_annotate_command, shell=True)
-    ct_adata = anndata.read_h5ad('secondary_analysis_hugo_ANN.h5ad')
-    secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
-                                               obsm = ct_adata.obsm, uns=ct_adata.uns)
-    for key in adata.obsm:
-        secondary_analysis_adata.obsm[key] = adata.obsm[key]
-
-    with new_plot():
-        sc.pl.umap(secondary_analysis_adata, color="final_level_labels", show=False)
-        plt.savefig("umap_by_cell_type.pdf", bbox_inches="tight")
-
-    if "X_spatial" in adata.obsm:
-        if "spatial" not in adata.obsm:
-            secondary_analysis_adata.obsm["spatial"] = secondary_analysis_adata.obsm["X_spatial"]
+        adata.write('secondary_analysis_hugo.h5ad')
+        azimuth_annotate_command = f"annotate secondary_analysis_hugo.h5ad -fn hugo_symbol"
+        check_call(azimuth_annotate_command, shell=True)
+        ct_adata = anndata.read_h5ad('secondary_analysis_hugo_ANN.h5ad')
+        secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
+                                                   obsm = ct_adata.obsm, uns=ct_adata.uns)
+        for key in adata.obsm:
+            secondary_analysis_adata.obsm[key] = adata.obsm[key]
 
         with new_plot():
-            sc.pl.scatter(secondary_analysis_adata, color="final_level_labels", basis="spatial", show=False)
-            plt.savefig("spatial_pos_by_cell_type.pdf", bbox_inches="tight")
+            sc.pl.umap(secondary_analysis_adata, color="final_level_labels", show=False)
+            plt.savefig("umap_by_cell_type.pdf", bbox_inches="tight")
 
-        sq.gr.spatial_neighbors(secondary_analysis_adata)
-        secondary_analysis_adata_subset = secondary_analysis_adata[~secondary_analysis_adata.obs.final_level_labels.isna()]
+        if "X_spatial" in adata.obsm:
+            if "spatial" not in adata.obsm:
+                secondary_analysis_adata.obsm["spatial"] = secondary_analysis_adata.obsm["X_spatial"]
 
-        sq.gr.nhood_enrichment(secondary_analysis_adata_subset, cluster_key="final_level_labels")
+            with new_plot():
+                sc.pl.scatter(secondary_analysis_adata, color="final_level_labels", basis="spatial", show=False)
+                plt.savefig("spatial_pos_by_cell_type.pdf", bbox_inches="tight")
 
-        with new_plot():
-            sq.pl.nhood_enrichment(secondary_analysis_adata_subset, cluster_key="final_level_labels")
-            plt.savefig("neighborhood_enrichment_by_cell_type.pdf", bbox_inches="tight")
+            sq.gr.spatial_neighbors(secondary_analysis_adata)
+            secondary_analysis_adata_subset = secondary_analysis_adata[~secondary_analysis_adata.obs.final_level_labels.isna()]
 
-#    single_sample_cells = [c for c in secondary_analysis_adata.obs.azimuth_fine.unique() if
-#                           len(secondary_analysis_adata[secondary_analysis_adata.obs.azimuth_fine == c].obs.index) == 1]
-#    secondary_analysis_adata_subset = secondary_analysis_adata[~secondary_analysis_adata.obs.azimuth_fine.isin(single_sample_cells)]
+            sq.gr.nhood_enrichment(secondary_analysis_adata_subset, cluster_key="final_level_labels")
 
-#    sc.tl.rank_genes_groups(secondary_analysis_adata_subset, "azimuth_fine", method="t-test",
-#                            key_added="rank_genes_groups_cell_type")
+            with new_plot():
+                sq.pl.nhood_enrichment(secondary_analysis_adata_subset, cluster_key="final_level_labels")
+                plt.savefig("neighborhood_enrichment_by_cell_type.pdf", bbox_inches="tight")
 
-#    with new_plot():
-#        sc.pl.rank_genes_groups(secondary_analysis_adata_subset, key="rank_genes_groups_cell_type",
-##                                n_genes=25, sharey=False)
- #       plt.savefig("marker_genes_by_cell_type_t_test.pdf", bbox_inches="tight")
+    #    single_sample_cells = [c for c in secondary_analysis_adata.obs.azimuth_fine.unique() if
+    #                           len(secondary_analysis_adata[secondary_analysis_adata.obs.azimuth_fine == c].obs.index) == 1]
+    #    secondary_analysis_adata_subset = secondary_analysis_adata[~secondary_analysis_adata.obs.azimuth_fine.isin(single_sample_cells)]
 
-#    secondary_analysis_adata.uns = secondary_analysis_adata_subset.uns
+    #    sc.tl.rank_genes_groups(secondary_analysis_adata_subset, "azimuth_fine", method="t-test",
+    #                            key_added="rank_genes_groups_cell_type")
+
+    #    with new_plot():
+    #        sc.pl.rank_genes_groups(secondary_analysis_adata_subset, key="rank_genes_groups_cell_type",
+    ##                                n_genes=25, sharey=False)
+     #       plt.savefig("marker_genes_by_cell_type_t_test.pdf", bbox_inches="tight")
+
+    #    secondary_analysis_adata.uns = secondary_analysis_adata_subset.uns
 
 
-    if secondary_analysis_matrix.suffix == ".h5mu":
-        mudata.mod["rna"] = secondary_analysis_adata
-        mudata.write_h5mu("secondary_analysis.h5mu")
+        if secondary_analysis_matrix.suffix == ".h5mu":
+            mudata.mod["rna"] = secondary_analysis_adata
+            mudata.write_h5mu("secondary_analysis.h5mu")
+        else:
+            secondary_analysis_adata.write("secondary_analysis.h5ad")
+
+        calculated_metadata_dict = {"annotation_tools": ["Azimuth"], "object_types": ["CL:0000000"]}
+        with open('calculated_metadata.json', 'w') as f:
+            json.dump(calculated_metadata_dict, f)
     else:
-        secondary_analysis_adata.write("secondary_analysis.h5ad")
-
-    calculated_metadata_dict = {"annotation_tools": ["Azimuth"], "object_types": ["CL:0000000"]}
-    with open('calculated_metadata.json', 'w') as f:
-        json.dump(calculated_metadata_dict, f)
+        if secondary_analysis_matrix.suffix == ".h5mu":
+            mudata = mu.read_h5mu(secondary_analysis_matrix)
+            mudata.write_h5mu("secondary_analysis.h5mu")
+        else:
+            adata = anndata.read_h5ad(secondary_analysis_matrix)
+            adata.write("secondary_analysis.h5ad")
 
 if __name__ == '__main__':
     p = ArgumentParser()
     p.add_argument('secondary_analysis_matrix', type=Path)
+    p.add_argument('organism', type=str)
     args = p.parse_args()
 
     main(
         args.secondary_analysis_matrix,
+        args.organism,
     )
 
