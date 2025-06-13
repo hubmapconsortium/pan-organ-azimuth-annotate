@@ -7,6 +7,9 @@ requirements:
 inputs:
   secondary_analysis_matrix:
     type: File
+  organism:
+    type: string?
+    default: "human"
 
 outputs:
   annotated_secondary_analysis_matrix:
@@ -29,13 +32,14 @@ outputs:
     type: File?
   calculated_metadata_file:
     outputSource: pan_organ_azimuth/calculated_metadata_file
-    type: File
+    type: File?
 
 steps:
   pan_organ_azimuth:
     run: steps/pan-organ-azimuth.cwl
     in:
       secondary_analysis_matrix: secondary_analysis_matrix
+      organism: organism
     out:
       [annotated_secondary_analysis_matrix, umap_plot, spatial_plot, marker_gene_plot, neighborhood_enrichment_plot,
       calculated_metadata_file]
