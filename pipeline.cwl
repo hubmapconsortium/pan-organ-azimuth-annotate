@@ -33,6 +33,9 @@ outputs:
   calculated_metadata_file:
     outputSource: pan_organ_azimuth/calculated_metadata_file
     type: File?
+  cell_type_manifest:
+    outputSource: pan_organ_azimuth/cell_type_manifest
+    type: File?
 
 steps:
   pan_organ_azimuth:
@@ -42,5 +45,5 @@ steps:
       organism: organism
     out:
       [annotated_secondary_analysis_matrix, umap_plot, spatial_plot, marker_gene_plot, neighborhood_enrichment_plot,
-      calculated_metadata_file]
+      calculated_metadata_file, cell_type_manifest]
 
