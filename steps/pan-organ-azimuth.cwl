@@ -41,5 +41,9 @@ outputs:
     type: File?
     outputBinding:
       glob: calculated_metadata.json
+  cell_type_manifest:
+    type: File?
+    outputBinding:
+      glob: cell_type_manifest.json
 
 baseCommand: ['python3', '/opt/pan_organ_azimuth.py']
