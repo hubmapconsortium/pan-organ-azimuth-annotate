@@ -81,6 +81,16 @@ def main(
         calculated_metadata_dict = {"annotation_tools": ["Azimuth"], "object_types": ["CL:0000000"]}
         with open('calculated_metadata.json', 'w') as f:
             json.dump(calculated_metadata_dict, f)
+
+        cell_type_manifest_dict = {}
+
+        for column_header in ['azimuth_broad', 'azimuth_medium', 'azimuth_fine']:
+            cell_type_manifest_dict[column_header] = {val:int((secondary_analysis_adata.obs[column_header] == \
+                                            val).sum()) for val in secondary_analysis_adata.obs[column_header].unique()}
+
+        with open('cell_type_manifest.json', 'w') as f:
+            json.dump(cell_type_manifest_dict, f)
+
     else:
         if secondary_analysis_matrix.suffix == ".h5mu":
             mudata = mu.read_h5mu(secondary_analysis_matrix)
