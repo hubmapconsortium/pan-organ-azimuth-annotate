@@ -1,15 +1,31 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3More actions
 from argparse import ArgumentParser
 from pathlib import Path
 from subprocess import run, check_call
 from typing import Optional
 import anndata
+import pandas as pd
 import scanpy as sc
 import squidpy as sq
 import muon as mu
 from plot_utils import new_plot
 import matplotlib.pyplot as plt
 import json
+
+
+CLID_MAPPING = "/opt/pan-human-azimuth-crosswalk.csv"
+
+
+def map_to_clid(adata_obs: pd.DataFrame):
+    reference = pd.read_csv(CLID_MAPPING)
+    print(reference.head())
+    (print(reference.columns))
+    obs_w_clid = adata_obs.merge(reference[['Annotation_Label', 'CL_Label', 'CL_ID']],
+                                 how='left',
+                                 left_on='final_level_labels',
+                                 right_on='Annotation_Label')
+    return obs_w_clid
+
 
 def main(
         secondary_analysis_matrix: Path,
@@ -33,6 +49,13 @@ def main(
         ct_adata = anndata.read_h5ad('secondary_analysis_hugo_ANN.h5ad')
         secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
                                                    obsm = ct_adata.obsm, uns=ct_adata.uns)
+
+        secondary_analysis_adata.obs = map_to_clid(secondary_analysis_adata.obs)
+        print(secondary_analysis_adata.obs)
+        print(secondary_analysis_adata.obs.columns)
+        print(secondary_analysis_adata.obs[["final_level_labels", "Annotation_Label", "CL_Label", "CL_ID"]])
+        print(secondary_analysis_adata.obs[["final_level_labels", "CL_Label", "CL_ID"]])
+
         for key in adata.obsm:
             secondary_analysis_adata.obsm[key] = adata.obsm[key]
 
@@ -84,7 +107,7 @@ def main(
 
         cell_type_manifest_dict = {}
 
-        for column_header in ['azimuth_broad', 'azimuth_medium', 'azimuth_fine']:
+        for column_header in ['azimuth_broad', 'azimuth_medium', 'azimuth_fine', 'CL_ID']:
             cell_type_manifest_dict[column_header] = {val:int((secondary_analysis_adata.obs[column_header] == \
                                             val).sum()) for val in secondary_analysis_adata.obs[column_header].unique()}
 
@@ -109,4 +132,4 @@ if __name__ == '__main__':
         args.secondary_analysis_matrix,
         args.organism,
     )
-
+    
