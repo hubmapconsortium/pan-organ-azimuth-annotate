@@ -4,12 +4,26 @@ from pathlib import Path
 from subprocess import run, check_call
 from typing import Optional
 import anndata
+import pandas as pd
 import scanpy as sc
 import squidpy as sq
 import muon as mu
 from plot_utils import new_plot
 import matplotlib.pyplot as plt
 import json
+
+CLID_MAPPING = "/opt/pan-human-azimuth-crosswalk.csv"
+
+
+def map_to_clid(adata_obs: pd.DataFrame):
+    reference = pd.read_csv(CLID_MAPPING, header=10)
+    obs_w_clid = adata_obs.merge(reference[['Annotation_Label', 'CL_Label', 'CL_ID']],
+                                 how='left',
+                                 left_on='final_level_labels',
+                                 right_on='Annotation_Label')
+    obs_w_clid = obs_w_clid.drop('Annotation_Label', axis='columns')
+    return obs_w_clid
+
 
 def main(
         secondary_analysis_matrix: Path,
@@ -33,12 +47,37 @@ def main(
         ct_adata = anndata.read_h5ad('secondary_analysis_hugo_ANN.h5ad')
         secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
                                                    obsm = ct_adata.obsm, uns=ct_adata.uns)
+
+        secondary_analysis_adata.obs = map_to_clid(secondary_analysis_adata.obs)
+        secondary_analysis_adata.uns["pan_human_azimuth_crosswalk"] = {
+            "title": "Cell type annotations for pan-human Azimuth, v1.0",
+            "description": (
+                "This crosswalk maps cell type annotations from pan-human Azimuth to the "
+                "Cell Ontology (Version IRI: http://purl.obolibrary.org/obo/cl/releases/2025-04-10/cl.owl)."
+            ),
+            "url": "https://cdn.humanatlas.io/digital-objects/ctann/pan-human-azimuth/latest/assets/pan-human-azimuth-crosswalk.csv",
+            "publisher": "HuBMAP",
+            "creators": ["Aleix Puig-Barbe"],
+            "project_lead": "Katy Börner",
+            "reviewers": ["Bruce W. Herr II", "Katy Börner"],
+            "processor": "HRA Digital Object Processor, v0.9.0",
+            "date_published": "2025-06-15",
+            "date_last_processed": "2025-06-12",
+            "funders": [
+                "National Institutes of Health (OT2OD033756)",
+                "National Institutes of Health (OT2OD026671)"
+            ],
+            "license": "CC BY 4.0",
+            "dashboard": "https://apps.humanatlas.io/dashboard/data"
+        }
+
         for key in adata.obsm:
             secondary_analysis_adata.obsm[key] = adata.obsm[key]
 
-        with new_plot():
-            sc.pl.umap(secondary_analysis_adata, color="final_level_labels", show=False)
-            plt.savefig("umap_by_cell_type.pdf", bbox_inches="tight")
+        if 'X_umap' in secondary_analysis_adata.obsm:
+            with new_plot():
+                sc.pl.umap(secondary_analysis_adata, color="final_level_labels", show=False)
+                plt.savefig("umap_by_cell_type.pdf", bbox_inches="tight")
 
         if "X_spatial" in adata.obsm:
             if "spatial" not in adata.obsm:
@@ -84,9 +123,14 @@ def main(
 
         cell_type_manifest_dict = {}
 
-        for column_header in ['azimuth_broad', 'azimuth_medium', 'azimuth_fine']:
-            cell_type_manifest_dict[column_header] = {val:int((secondary_analysis_adata.obs[column_header] == \
-                                            val).sum()) for val in secondary_analysis_adata.obs[column_header].unique()}
+        for column_header in ['azimuth_broad', 'azimuth_medium', 'azimuth_fine', 'final_level_labels', 'CL_ID']:
+            sub_dict = {
+                val: int((secondary_analysis_adata.obs[column_header] == val).sum())
+                for val in secondary_analysis_adata.obs[column_header].unique()
+            }
+            # Remove NaN key if it exists
+            sub_dict = {k: v for k, v in sub_dict.items() if not pd.isna(k)}
+            cell_type_manifest_dict[column_header] = sub_dict
 
         with open('cell_type_manifest.json', 'w') as f:
             json.dump(cell_type_manifest_dict, f)
@@ -109,4 +153,4 @@ if __name__ == '__main__':
         args.secondary_analysis_matrix,
         args.organism,
     )
-
+    
