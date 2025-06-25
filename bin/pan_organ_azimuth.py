@@ -1,4 +1,4 @@
-#!/usr/bin/env python3More actions
+#!/usr/bin/env python3
 from argparse import ArgumentParser
 from pathlib import Path
 from subprocess import run, check_call
