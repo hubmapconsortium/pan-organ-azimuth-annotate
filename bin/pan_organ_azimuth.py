@@ -18,8 +18,6 @@ CLID_MAPPING = "/opt/pan-human-azimuth-crosswalk.csv"
 
 def map_to_clid(adata_obs: pd.DataFrame):
     reference = pd.read_csv(CLID_MAPPING)
-    print(reference.head())
-    (print(reference.columns))
     obs_w_clid = adata_obs.merge(reference[['Annotation_Label', 'CL_Label', 'CL_ID']],
                                  how='left',
                                  left_on='final_level_labels',
@@ -51,10 +49,6 @@ def main(
                                                    obsm = ct_adata.obsm, uns=ct_adata.uns)
 
         secondary_analysis_adata.obs = map_to_clid(secondary_analysis_adata.obs)
-        print(secondary_analysis_adata.obs)
-        print(secondary_analysis_adata.obs.columns)
-        print(secondary_analysis_adata.obs[["final_level_labels", "Annotation_Label", "CL_Label", "CL_ID"]])
-        print(secondary_analysis_adata.obs[["final_level_labels", "CL_Label", "CL_ID"]])
 
         for key in adata.obsm:
             secondary_analysis_adata.obsm[key] = adata.obsm[key]
