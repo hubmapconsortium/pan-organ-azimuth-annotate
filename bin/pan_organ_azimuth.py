@@ -53,9 +53,10 @@ def main(
         for key in adata.obsm:
             secondary_analysis_adata.obsm[key] = adata.obsm[key]
 
-        with new_plot():
-            sc.pl.umap(secondary_analysis_adata, color="final_level_labels", show=False)
-            plt.savefig("umap_by_cell_type.pdf", bbox_inches="tight")
+        if 'X_umap' in secondary_analysis_adata.obsm:
+            with new_plot():
+                sc.pl.umap(secondary_analysis_adata, color="final_level_labels", show=False)
+                plt.savefig("umap_by_cell_type.pdf", bbox_inches="tight")
 
         if "X_spatial" in adata.obsm:
             if "spatial" not in adata.obsm:
