@@ -12,16 +12,16 @@ from plot_utils import new_plot
 import matplotlib.pyplot as plt
 import json
 
-
 CLID_MAPPING = "/opt/pan-human-azimuth-crosswalk.csv"
 
 
 def map_to_clid(adata_obs: pd.DataFrame):
-    reference = pd.read_csv(CLID_MAPPING)
+    reference = pd.read_csv(CLID_MAPPING, header=10)
     obs_w_clid = adata_obs.merge(reference[['Annotation_Label', 'CL_Label', 'CL_ID']],
                                  how='left',
                                  left_on='final_level_labels',
                                  right_on='Annotation_Label')
+    obs_w_clid = obs_w_clid.drop('Annotation_Label', axis='columns')
     return obs_w_clid
 
 
@@ -49,6 +49,27 @@ def main(
                                                    obsm = ct_adata.obsm, uns=ct_adata.uns)
 
         secondary_analysis_adata.obs = map_to_clid(secondary_analysis_adata.obs)
+        secondary_analysis_adata.uns["pan_human_azimuth_crosswalk"] = {
+            "title": "Cell type annotations for pan-human Azimuth, v1.0",
+            "description": (
+                "This crosswalk maps cell type annotations from pan-human Azimuth to the "
+                "Cell Ontology (Version IRI: http://purl.obolibrary.org/obo/cl/releases/2025-04-10/cl.owl)."
+            ),
+            "url": "https://cdn.humanatlas.io/digital-objects/ctann/pan-human-azimuth/latest/assets/pan-human-azimuth-crosswalk.csv",
+            "publisher": "HuBMAP",
+            "creators": ["Aleix Puig-Barbe"],
+            "project_lead": "Katy Börner",
+            "reviewers": ["Bruce W. Herr II", "Katy Börner"],
+            "processor": "HRA Digital Object Processor, v0.9.0",
+            "date_published": "2025-06-15",
+            "date_last_processed": "2025-06-12",
+            "funders": [
+                "National Institutes of Health (OT2OD033756)",
+                "National Institutes of Health (OT2OD026671)"
+            ],
+            "license": "CC BY 4.0",
+            "dashboard": "https://apps.humanatlas.io/dashboard/data"
+        }
 
         for key in adata.obsm:
             secondary_analysis_adata.obsm[key] = adata.obsm[key]
