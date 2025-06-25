@@ -102,8 +102,13 @@ def main(
         cell_type_manifest_dict = {}
 
         for column_header in ['azimuth_broad', 'azimuth_medium', 'azimuth_fine', 'final_level_labels', 'CL_ID']:
-            cell_type_manifest_dict[column_header] = {val:int((secondary_analysis_adata.obs[column_header] == \
-                                            val).sum()) for val in secondary_analysis_adata.obs[column_header].unique()}
+            sub_dict = {
+                val: int((secondary_analysis_adata.obs[column_header] == val).sum())
+                for val in secondary_analysis_adata.obs[column_header].unique()
+            }
+            # Remove NaN key if it exists
+            sub_dict = {k: v for k, v in sub_dict.items() if not pd.isna(k)}
+            cell_type_manifest_dict[column_header] = sub_dict
 
         with open('cell_type_manifest.json', 'w') as f:
             json.dump(cell_type_manifest_dict, f)
