@@ -117,7 +117,7 @@ def main(
         else:
             secondary_analysis_adata.write("secondary_analysis.h5ad")
 
-        calculated_metadata_dict = {"annotation_tools": ["Azimuth"], "object_types": ["CL:0000000"]}
+        calculated_metadata_dict = {"annotation_tools": ["Pan-human Azimuth"], "object_types": ["CL:0000000"]}
         with open('calculated_metadata.json', 'w') as f:
             json.dump(calculated_metadata_dict, f)
 
