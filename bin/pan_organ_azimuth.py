@@ -74,6 +74,9 @@ def main(
         for key in adata.obsm:
             secondary_analysis_adata.obsm[key] = adata.obsm[key]
 
+        for key in adata.layers:
+            secondary_analysis_adata.layers[key] = adata.layers[key]
+
         if 'X_umap' in secondary_analysis_adata.obsm:
             with new_plot():
                 sc.pl.umap(secondary_analysis_adata, color="final_level_labels", show=False)
