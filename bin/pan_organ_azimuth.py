@@ -48,6 +48,9 @@ def main(
         secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
                                                    obsm = ct_adata.obsm, uns=ct_adata.uns)
 
+        for key in adata.uns.keys():
+            secondary_analysis_adata.uns[key] = adata.uns[key]
+
         secondary_analysis_adata.obs = map_to_clid(secondary_analysis_adata.obs)
         secondary_analysis_adata.uns["pan_human_azimuth_crosswalk"] = {
             "title": "Cell type annotations for pan-human Azimuth, v1.0",
@@ -70,6 +73,8 @@ def main(
             "license": "CC BY 4.0",
             "dashboard": "https://apps.humanatlas.io/dashboard/data"
         }
+        secondary_analysis_adata.uns["annotation_metadata"] = {}
+        secondary_analysis_adata.uns["annotation_metadata"]["is_annotated"] = True
 
         for key in adata.obsm:
             secondary_analysis_adata.obsm[key] = adata.obsm[key]
@@ -141,9 +146,13 @@ def main(
     else:
         if secondary_analysis_matrix.suffix == ".h5mu":
             mudata = mu.read_h5mu(secondary_analysis_matrix)
+            mudata.uns["annotation_metadata"] = {}
+            mudata.uns["annotation_metadata"]["is_annotated"] = False
             mudata.write_h5mu("secondary_analysis.h5mu")
         else:
             adata = anndata.read_h5ad(secondary_analysis_matrix)
+            adata.uns["annotation_metadata"] = {}
+            adata.uns["annotation_metadata"]["is_annotated"] = False
             adata.write("secondary_analysis.h5ad")
 
 if __name__ == '__main__':
