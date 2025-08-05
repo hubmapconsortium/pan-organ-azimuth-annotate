@@ -22,6 +22,7 @@ def map_to_clid(adata_obs: pd.DataFrame):
                                  left_on='final_level_labels',
                                  right_on='Annotation_Label')
     obs_w_clid = obs_w_clid.drop('Annotation_Label', axis='columns')
+    print(obs_w_clid)
     return obs_w_clid
 
 
@@ -47,6 +48,9 @@ def main(
         ct_adata = anndata.read_h5ad('secondary_analysis_hugo_ANN.h5ad')
         secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
                                                    obsm = ct_adata.obsm, uns=ct_adata.uns)
+
+        print(secondary_analysis_adata)
+
 
         for key in adata.uns.keys():
             secondary_analysis_adata.uns[key] = adata.uns[key]
