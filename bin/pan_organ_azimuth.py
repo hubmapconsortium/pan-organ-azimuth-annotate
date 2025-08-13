@@ -11,6 +11,7 @@ import muon as mu
 from plot_utils import new_plot
 import matplotlib.pyplot as plt
 import json
+import mudata as md
 
 CLID_MAPPING = "/opt/pan-human-azimuth-crosswalk.csv"
 
@@ -32,7 +33,7 @@ def main(
 ):
     if organism == "human":
         if secondary_analysis_matrix.suffix == ".h5mu":
-            mudata = mu.read_h5mu(secondary_analysis_matrix)
+            mudata = md.read_h5mu(secondary_analysis_matrix)
             adata = mudata.mod["rna"]
         else:
             adata = anndata.read_h5ad(secondary_analysis_matrix)
@@ -122,7 +123,7 @@ def main(
 
         if secondary_analysis_matrix.suffix == ".h5mu":
             mudata.mod["rna"] = secondary_analysis_adata
-            mudata.write_h5mu("secondary_analysis.h5mu")
+            md.write_h5mu("secondary_analysis.h5mu", mudata)
         else:
             secondary_analysis_adata.write("secondary_analysis.h5ad")
 
@@ -146,10 +147,10 @@ def main(
 
     else:
         if secondary_analysis_matrix.suffix == ".h5mu":
-            mudata = mu.read_h5mu(secondary_analysis_matrix)
+            mudata = md.read_h5mu(secondary_analysis_matrix)
             mudata.uns["annotation_metadata"] = {}
             mudata.uns["annotation_metadata"]["is_annotated"] = False
-            mudata.write_h5mu("secondary_analysis.h5mu")
+            md.write_h5mu("secondary_analysis.h5mu", mudata)
         else:
             adata = anndata.read_h5ad(secondary_analysis_matrix)
             adata.uns["annotation_metadata"] = {}
