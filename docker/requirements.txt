@@ -1,5 +1,4 @@
-muon
-scanpy
-squidpy
+#muon
+#squidpy
 
-git+https://github.com/satijalab/panhumanpy.git
+git+https://github.com/satijalab/panhumanpy.git@v0.2.1-andromeda

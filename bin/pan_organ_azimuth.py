@@ -54,6 +54,7 @@ def main(
             secondary_analysis_adata.uns[key] = adata.uns[key]
 
         secondary_analysis_adata.obs = map_to_clid(secondary_analysis_adata.obs)
+        print(secondary_analysis_adata.obs.index)
         secondary_analysis_adata.uns["pan_human_azimuth_crosswalk"] = {
             "title": "Cell type annotations for pan-human Azimuth, v1.0",
             "description": (
@@ -119,10 +120,11 @@ def main(
      #       plt.savefig("marker_genes_by_cell_type_t_test.pdf", bbox_inches="tight")
 
     #    secondary_analysis_adata.uns = secondary_analysis_adata_subset.uns
-
+        print(secondary_analysis_adata.obs.index)
 
         if secondary_analysis_matrix.suffix == ".h5mu":
             mudata.mod["rna"] = secondary_analysis_adata
+            print(mudata.obs.index)
             md.write_h5mu("secondary_analysis.h5mu", mudata)
         else:
             secondary_analysis_adata.write("secondary_analysis.h5ad")

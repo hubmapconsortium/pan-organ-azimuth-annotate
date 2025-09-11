@@ -22,10 +22,19 @@ RUN apt-get update \
     curl \
  && rm -rf /var/cache/apt/*
 
+RUN pip3 install numpy==1.26.4
+
 ## Python packages
 COPY docker/requirements.txt /opt/requirements.txt
-RUN pip3 install -r /opt/requirements.txt \
- && rm -rf /root/.cache/pip
+RUN pip3 install -r /opt/requirements.txt
+
+RUN pip3 install muon
+RUN pip3 install squidpy
+RUN pip3 install numpy==1.26.4
+
+
+RUN rm -rf /root/.cache/pip
+
 
 RUN curl -L -o /opt/pan-human-azimuth-crosswalk.csv https://cdn.humanatlas.io/digital-objects/ctann/pan-human-azimuth/v1.0/assets/pan-human-azimuth-crosswalk.csv
 
