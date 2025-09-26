@@ -8,12 +8,14 @@ import pandas as pd
 import scanpy as sc
 import squidpy as sq
 import muon as mu
+
+import panhumanpy
 from plot_utils import new_plot
 import matplotlib.pyplot as plt
 import json
 
 CLID_MAPPING = "/opt/pan-human-azimuth-crosswalk.csv"
-
+model_version = "v1"
 
 def map_to_clid(adata_obs: pd.DataFrame):
     
@@ -43,7 +45,7 @@ def main(
         adata = adata[:,~adata.var.hugo_symbol.isna()]
 
         adata.write('secondary_analysis_hugo.h5ad')
-        azimuth_annotate_command = f"annotate secondary_analysis_hugo.h5ad -fn hugo_symbol"
+        azimuth_annotate_command = f"annotate secondary_analysis_hugo.h5ad -fn hugo_symbol -mv {model_version}"
         check_call(azimuth_annotate_command, shell=True)
         ct_adata = anndata.read_h5ad('secondary_analysis_hugo_ANN.h5ad')
         secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
@@ -76,6 +78,8 @@ def main(
         }
         secondary_analysis_adata.uns["annotation_metadata"] = {}
         secondary_analysis_adata.uns["annotation_metadata"]["is_annotated"] = True
+        secondary_analysis_adata.uns["annotation_metadata"]["model_version"] = model_version
+        secondary_analysis_adata.uns["annotation_metadata"]["panhumanpy_version"] = panhumanpy.__version__
 
         for key in adata.obsm:
             secondary_analysis_adata.obsm[key] = adata.obsm[key]
