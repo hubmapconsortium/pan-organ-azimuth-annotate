@@ -2,4 +2,4 @@ muon
 scanpy
 squidpy
 
-git+https://github.com/satijalab/panhumanpy.git
+git+https://github.com/satijalab/panhumanpy.git@d4c69410e7dc23213b7a848c8c1d8274e333272a
