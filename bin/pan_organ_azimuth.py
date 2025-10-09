@@ -125,6 +125,8 @@ def main(
 
 
         if secondary_analysis_matrix.suffix == ".h5mu":
+            for key in secondary_analysis_adata.uns.keys():
+                mudata.uns[key] = secondary_analysis_adata.uns[key]
             mudata.mod["rna"] = secondary_analysis_adata
             mudata.write_h5mu("secondary_analysis.h5mu")
         else:
