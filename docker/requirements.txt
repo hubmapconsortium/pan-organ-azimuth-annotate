@@ -1,3 +1,4 @@
 muon
 scanpy
 squidpy
+anndata==0.12.7
