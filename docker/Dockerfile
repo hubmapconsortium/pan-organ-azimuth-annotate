@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -18,14 +18,18 @@ RUN apt-get update \
     python3 \
     python3-dev \
     python3-pip \
+    python3-venv \
     zlib1g-dev \
     curl \
  && rm -rf /var/cache/apt/*
 
 ## Python packages
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 COPY docker/requirements.txt /opt/requirements.txt
 RUN pip3 install -r /opt/requirements.txt \
  && rm -rf /root/.cache/pip
+
 
 RUN pip3 install git+https://github.com/satijalab/panhumanpy.git@d4c69410e7dc23213b7a848c8c1d8274e333272a
 
