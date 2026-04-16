@@ -3,7 +3,7 @@ cwlVersion: v1.1
 class: CommandLineTool
 requirements:
   DockerRequirement:
-    dockerPull: hubmap/pan-organ-azimuth:latest
+    dockerPull: hubmap/pan-organ-azimuth:1.2.0
 
 inputs:
   secondary_analysis_matrix:
