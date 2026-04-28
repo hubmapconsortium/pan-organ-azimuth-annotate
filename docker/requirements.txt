@@ -1,4 +1,5 @@
-muon
-scanpy
+muon==0.1.7
+scanpy==1.11.5
 squidpy
 anndata==0.12.7
+git+https://github.com/scverse/mudata.git@c5b310be019c1aaf94c0d053001308a2533c73f5
