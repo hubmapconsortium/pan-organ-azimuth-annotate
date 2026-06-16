@@ -2,4 +2,8 @@ muon==0.1.7
 scanpy==1.11.5
 squidpy
 anndata==0.12.7
+dask==2025.12.0
+ome-zarr==0.13.0
+spatialdata==0.7.2
+zarr>=3.0
 git+https://github.com/scverse/mudata.git@c5b310be019c1aaf94c0d053001308a2533c73f5

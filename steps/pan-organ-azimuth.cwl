@@ -14,6 +14,10 @@ inputs:
     type: string?
     inputBinding:
       position: 1
+  sdata_zarr:
+    type: Directory?
+    inputBinding:
+      position: 2
 
 
 outputs:
@@ -45,5 +49,9 @@ outputs:
     type: File?
     outputBinding:
       glob: cell_type_manifest.json
+  sdata_zarr:
+    type: Directory?
+    outputBinding:
+      glob: "*.zarr"
 
 baseCommand: ['python3', '/opt/pan_organ_azimuth.py']

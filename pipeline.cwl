@@ -10,6 +10,8 @@ inputs:
   organism:
     type: string?
     default: "human"
+  sdata_zarr:
+    type: Directory?
 
 outputs:
   annotated_secondary_analysis_matrix:
@@ -43,7 +45,8 @@ steps:
     in:
       secondary_analysis_matrix: secondary_analysis_matrix
       organism: organism
+      sdata_zarr: sdata_zarr
     out:
       [annotated_secondary_analysis_matrix, umap_plot, spatial_plot, marker_gene_plot, neighborhood_enrichment_plot,
-      calculated_metadata_file, cell_type_manifest]
+      calculated_metadata_file, cell_type_manifest, sdata_zarr]
 

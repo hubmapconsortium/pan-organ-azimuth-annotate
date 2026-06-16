@@ -8,6 +8,7 @@ import pandas as pd
 import scanpy as sc
 import squidpy as sq
 import muon as mu
+import spatialdata as sd
 
 import panhumanpy
 from plot_utils import new_plot
@@ -31,12 +32,13 @@ def map_to_clid(adata_obs: pd.DataFrame):
 def main(
         secondary_analysis_matrix: Path,
         organism: str,
+        sdata_zarr: Path=None
 ):
     if organism == "human":
         if secondary_analysis_matrix.suffix == ".h5mu":
             mudata = mu.read_h5mu(secondary_analysis_matrix)
             adata = mudata.mod["rna"]
-        else:
+        elif secondary_analysis_matrix.suffix == ".h5ad":
             adata = anndata.read_h5ad(secondary_analysis_matrix)
 
         if "unscaled" in adata.layers:
@@ -129,8 +131,13 @@ def main(
                 mudata.uns[key] = secondary_analysis_adata.uns[key]
             mudata.mod["rna"] = secondary_analysis_adata
             mudata.write_h5mu("secondary_analysis.h5mu")
-        else:
+        elif secondary_analysis_matrix.suffix == ".h5ad":
             secondary_analysis_adata.write("secondary_analysis.h5ad")
+        if sdata_zarr:
+            sdata = sd.read_zarr(sdata_zarr)
+            if "cell_segmentations_processed" in sdata.tables.keys():
+                sdata.tables["cell_segmentations_processed"] = adata
+            sdata.write(secondary_analysis_matrix.name)
 
         calculated_metadata_dict = {"annotation_tools": ["Pan-human Azimuth"], "object_types": ["CL:0000000"]}
         with open('calculated_metadata.json', 'w') as f:
@@ -150,6 +157,11 @@ def main(
         with open('cell_type_manifest.json', 'w') as f:
             json.dump(cell_type_manifest_dict, f)
 
+        mask_index = anndata.obs["n_counts"] < 200 or anndata.obs.final_level_confidence < 0.9
+        print(f"number of masked cells = {mask_index.sum()}")
+        for column_header in ['azimuth_broad', 'azimuth_medium', 'azimuth_fine', 'final_level_labels', 'CL_ID']:
+            adata.obs[mask_index, column_header] = None
+
     else:
         if secondary_analysis_matrix.suffix == ".h5mu":
             mudata = mu.read_h5mu(secondary_analysis_matrix)
@@ -161,15 +173,20 @@ def main(
             adata.uns["annotation_metadata"] = {}
             adata.uns["annotation_metadata"]["is_annotated"] = False
             adata.write("secondary_analysis.h5ad")
+        if sdata_zarr:
+            sdata = sd.read_zarr(sdata_zarr)
+            sdata.write(sdata_zarr.name)
 
 if __name__ == '__main__':
     p = ArgumentParser()
     p.add_argument('secondary_analysis_matrix', type=Path)
     p.add_argument('organism', type=str)
+    p.add_argument('sdata_zarr', type=Path, nargs='?')
     args = p.parse_args()
 
     main(
         args.secondary_analysis_matrix,
         args.organism,
+        args.sdata_zarr,
     )
     
