@@ -1,3 +1,4 @@
-.idea
-*.pdf
 *.h5ad
+*.json
+*.pdf
+.idea
