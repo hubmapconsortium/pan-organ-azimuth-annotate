@@ -1,36 +1,37 @@
 #!/usr/bin/env python3
+import json
 from argparse import ArgumentParser
 from pathlib import Path
-from subprocess import run, check_call
-from typing import Optional
+from subprocess import check_call
+
 import anndata
+import matplotlib.pyplot as plt
+import muon as mu
+import numpy as np
 import pandas as pd
+import panhumanpy
 import scanpy as sc
 import squidpy as sq
-import muon as mu
-
-import panhumanpy
 from plot_utils import new_plot
-import matplotlib.pyplot as plt
-import json
 
 CLID_MAPPING = "/opt/pan-human-azimuth-crosswalk.csv"
 model_version = "v1"
 
-def map_to_clid(adata_obs: pd.DataFrame):
-    
-    reference = pd.read_csv(CLID_MAPPING, header=10)
-    label_to_cl_label = dict(zip(reference['Annotation_Label'], reference['CL_Label']))
-    label_to_cl_id = dict(zip(reference['Annotation_Label'], reference['CL_ID']))
 
-    adata_obs['CL_Label'] = adata_obs['final_level_labels'].map(label_to_cl_label)
-    adata_obs['CL_ID'] = adata_obs['final_level_labels'].map(label_to_cl_id)
+def map_to_clid(adata_obs: pd.DataFrame):
+    reference = pd.read_csv(CLID_MAPPING, header=10)
+    label_to_cl_label = dict(zip(reference["Annotation_Label"], reference["CL_Label"]))
+    label_to_cl_id = dict(zip(reference["Annotation_Label"], reference["CL_ID"]))
+
+    adata_obs["CL_Label"] = adata_obs["final_level_labels"].map(label_to_cl_label)
+    adata_obs["CL_ID"] = adata_obs["final_level_labels"].map(label_to_cl_id)
 
     return adata_obs
 
+
 def main(
-        secondary_analysis_matrix: Path,
-        organism: str,
+    secondary_analysis_matrix: Path,
+    organism: str,
 ):
     if organism == "human":
         if secondary_analysis_matrix.suffix == ".h5mu":
@@ -42,14 +43,34 @@ def main(
         if "unscaled" in adata.layers:
             adata.X = adata.layers["unscaled"]
 
-        adata = adata[:,~adata.var.hugo_symbol.isna()]
+        adata = adata[:, ~adata.var.hugo_symbol.isna()]
 
-        adata.write('secondary_analysis_hugo.h5ad')
-        azimuth_annotate_command = f"annotate secondary_analysis_hugo.h5ad -fn hugo_symbol -mv {model_version}"
+        adata.write("secondary_analysis_hugo.h5ad")
+        azimuth_annotate_command = (
+            f"annotate secondary_analysis_hugo.h5ad -fn hugo_symbol -mv {model_version}"
+        )
         check_call(azimuth_annotate_command, shell=True)
-        ct_adata = anndata.read_h5ad('secondary_analysis_hugo_ANN.h5ad')
-        secondary_analysis_adata = anndata.AnnData(X=adata.X, var=adata.var, obs=ct_adata.obs,
-                                                   obsm = ct_adata.obsm, uns=ct_adata.uns)
+        ct_adata = anndata.read_h5ad("secondary_analysis_hugo_ANN.h5ad")
+
+        label_sel = [
+            not (
+                c.startswith("full_hierarchical_label_matrix")
+                or c.startswith("full_hierarchical_confidence")
+            )
+            for c in ct_adata.obs.columns
+        ]
+        new_obs = ct_adata.obs.loc[:, label_sel]
+
+        most_confident_index = np.argmax(
+            ct_adata.obsm["azimuth_full_hierarchical_confidence"], axis=1
+        )
+        new_obs["most_confident_label"] = np.take(
+            ct_adata.obsm["azimuth_full_hierarchical_labels"], most_confident_index
+        )
+
+        secondary_analysis_adata = anndata.AnnData(
+            X=adata.X, var=adata.var, obs=new_obs, obsm=ct_adata.obsm, uns=ct_adata.uns
+        )
 
         for key in adata.uns.keys():
             secondary_analysis_adata.uns[key] = adata.uns[key]
@@ -71,15 +92,19 @@ def main(
             "date_last_processed": "2025-06-12",
             "funders": [
                 "National Institutes of Health (OT2OD033756)",
-                "National Institutes of Health (OT2OD026671)"
+                "National Institutes of Health (OT2OD026671)",
             ],
             "license": "CC BY 4.0",
-            "dashboard": "https://apps.humanatlas.io/dashboard/data"
+            "dashboard": "https://apps.humanatlas.io/dashboard/data",
         }
         secondary_analysis_adata.uns["annotation_metadata"] = {}
         secondary_analysis_adata.uns["annotation_metadata"]["is_annotated"] = True
-        secondary_analysis_adata.uns["annotation_metadata"]["model_version"] = model_version
-        secondary_analysis_adata.uns["annotation_metadata"]["panhumanpy_version"] = panhumanpy.__version__
+        secondary_analysis_adata.uns["annotation_metadata"][
+            "model_version"
+        ] = model_version
+        secondary_analysis_adata.uns["annotation_metadata"][
+            "panhumanpy_version"
+        ] = panhumanpy.__version__
 
         for key in adata.obsm:
             secondary_analysis_adata.obsm[key] = adata.obsm[key]
@@ -87,42 +112,58 @@ def main(
         for key in adata.layers:
             secondary_analysis_adata.layers[key] = adata.layers[key]
 
-        if 'X_umap' in secondary_analysis_adata.obsm:
+        if "X_umap" in secondary_analysis_adata.obsm:
             with new_plot():
-                sc.pl.umap(secondary_analysis_adata, color="final_level_labels", show=False)
+                sc.pl.umap(
+                    secondary_analysis_adata, color="final_level_labels", show=False
+                )
                 plt.savefig("umap_by_cell_type.pdf", bbox_inches="tight")
 
         if "X_spatial" in adata.obsm:
             if "spatial" not in adata.obsm:
-                secondary_analysis_adata.obsm["spatial"] = secondary_analysis_adata.obsm["X_spatial"]
+                secondary_analysis_adata.obsm["spatial"] = (
+                    secondary_analysis_adata.obsm["X_spatial"]
+                )
 
             with new_plot():
-                sc.pl.scatter(secondary_analysis_adata, color="final_level_labels", basis="spatial", show=False)
+                sc.pl.scatter(
+                    secondary_analysis_adata,
+                    color="final_level_labels",
+                    basis="spatial",
+                    show=False,
+                )
                 plt.savefig("spatial_pos_by_cell_type.pdf", bbox_inches="tight")
 
             sq.gr.spatial_neighbors(secondary_analysis_adata)
-            secondary_analysis_adata_subset = secondary_analysis_adata[~secondary_analysis_adata.obs.final_level_labels.isna()]
+            secondary_analysis_adata_subset = secondary_analysis_adata[
+                ~secondary_analysis_adata.obs.final_level_labels.isna()
+            ]
 
-            sq.gr.nhood_enrichment(secondary_analysis_adata_subset, cluster_key="final_level_labels")
+            sq.gr.nhood_enrichment(
+                secondary_analysis_adata_subset, cluster_key="final_level_labels"
+            )
 
             with new_plot():
-                sq.pl.nhood_enrichment(secondary_analysis_adata_subset, cluster_key="final_level_labels")
-                plt.savefig("neighborhood_enrichment_by_cell_type.pdf", bbox_inches="tight")
+                sq.pl.nhood_enrichment(
+                    secondary_analysis_adata_subset, cluster_key="final_level_labels"
+                )
+                plt.savefig(
+                    "neighborhood_enrichment_by_cell_type.pdf", bbox_inches="tight"
+                )
 
-    #    single_sample_cells = [c for c in secondary_analysis_adata.obs.azimuth_fine.unique() if
-    #                           len(secondary_analysis_adata[secondary_analysis_adata.obs.azimuth_fine == c].obs.index) == 1]
-    #    secondary_analysis_adata_subset = secondary_analysis_adata[~secondary_analysis_adata.obs.azimuth_fine.isin(single_sample_cells)]
+        #    single_sample_cells = [c for c in secondary_analysis_adata.obs.azimuth_fine.unique() if
+        #                           len(secondary_analysis_adata[secondary_analysis_adata.obs.azimuth_fine == c].obs.index) == 1]
+        #    secondary_analysis_adata_subset = secondary_analysis_adata[~secondary_analysis_adata.obs.azimuth_fine.isin(single_sample_cells)]
 
-    #    sc.tl.rank_genes_groups(secondary_analysis_adata_subset, "azimuth_fine", method="t-test",
-    #                            key_added="rank_genes_groups_cell_type")
+        #    sc.tl.rank_genes_groups(secondary_analysis_adata_subset, "azimuth_fine", method="t-test",
+        #                            key_added="rank_genes_groups_cell_type")
 
-    #    with new_plot():
-    #        sc.pl.rank_genes_groups(secondary_analysis_adata_subset, key="rank_genes_groups_cell_type",
-    ##                                n_genes=25, sharey=False)
-     #       plt.savefig("marker_genes_by_cell_type_t_test.pdf", bbox_inches="tight")
+        #    with new_plot():
+        #        sc.pl.rank_genes_groups(secondary_analysis_adata_subset, key="rank_genes_groups_cell_type",
+        ##                                n_genes=25, sharey=False)
+        #       plt.savefig("marker_genes_by_cell_type_t_test.pdf", bbox_inches="tight")
 
-    #    secondary_analysis_adata.uns = secondary_analysis_adata_subset.uns
-
+        #    secondary_analysis_adata.uns = secondary_analysis_adata_subset.uns
 
         if secondary_analysis_matrix.suffix == ".h5mu":
             for key in secondary_analysis_adata.uns.keys():
@@ -132,13 +173,22 @@ def main(
         else:
             secondary_analysis_adata.write("secondary_analysis.h5ad")
 
-        calculated_metadata_dict = {"annotation_tools": ["Pan-human Azimuth"], "object_types": ["CL:0000000"]}
-        with open('calculated_metadata.json', 'w') as f:
+        calculated_metadata_dict = {
+            "annotation_tools": ["Pan-human Azimuth"],
+            "object_types": ["CL:0000000"],
+        }
+        with open("calculated_metadata.json", "w") as f:
             json.dump(calculated_metadata_dict, f)
 
         cell_type_manifest_dict = {}
 
-        for column_header in ['azimuth_broad', 'azimuth_medium', 'azimuth_fine', 'final_level_labels', 'CL_ID']:
+        for column_header in [
+            "azimuth_broad",
+            "azimuth_medium",
+            "azimuth_fine",
+            "final_level_labels",
+            "CL_ID",
+        ]:
             sub_dict = {
                 val: int((secondary_analysis_adata.obs[column_header] == val).sum())
                 for val in secondary_analysis_adata.obs[column_header].unique()
@@ -147,7 +197,7 @@ def main(
             sub_dict = {k: v for k, v in sub_dict.items() if not pd.isna(k)}
             cell_type_manifest_dict[column_header] = sub_dict
 
-        with open('cell_type_manifest.json', 'w') as f:
+        with open("cell_type_manifest.json", "w") as f:
             json.dump(cell_type_manifest_dict, f)
 
     else:
@@ -162,14 +212,14 @@ def main(
             adata.uns["annotation_metadata"]["is_annotated"] = False
             adata.write("secondary_analysis.h5ad")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     p = ArgumentParser()
-    p.add_argument('secondary_analysis_matrix', type=Path)
-    p.add_argument('organism', type=str)
+    p.add_argument("secondary_analysis_matrix", type=Path)
+    p.add_argument("organism", type=str)
     args = p.parse_args()
 
     main(
         args.secondary_analysis_matrix,
         args.organism,
     )
-    
